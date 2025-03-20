@@ -58,7 +58,7 @@ export default function EmployeeDashboard() {
         <div className="p-6 bg-teal-100 text-teal-800 rounded-2xl shadow-md flex items-center space-x-4">
           <FaCheckCircle className="text-4xl" />
           <div>
-            <h2 className="text-lg font-semibold">Taux d'acceptation</h2>
+            <h2 className="text-lg font-semibold">Taux d&apos;acceptation</h2>
             <p className="text-3xl font-bold">85%</p>
           </div>
         </div>
