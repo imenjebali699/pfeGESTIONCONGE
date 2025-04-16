@@ -5,9 +5,10 @@ import Button from "@/components/ui/button/Button";
 import { EyeCloseIcon, EyeIcon } from "@/icons";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {jwtDecode} from "jwt-decode";
+import{ jwtDecode} from "jwt-decode";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
+import { useAuth } from "@/context/AuthContext"; // Import du contexte d'authentification
 
 interface JWTPayload {
   role: string;
@@ -23,6 +24,7 @@ export default function SignInForm() {
   const [passwordError, setPasswordError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { login } = useAuth(); // Récupération de la fonction login du contexte
 
   const validateForm = useCallback((): boolean => {
     let isValid = true;
@@ -31,17 +33,21 @@ export default function SignInForm() {
 
     if (!email.trim()) {
       setEmailError("L'email est requis.");
+      alert("L'email est requis.");
       isValid = false;
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       setEmailError("Veuillez entrer une adresse e-mail valide.");
+      alert("Veuillez entrer une adresse e-mail valide.");
       isValid = false;
     }
 
     if (!password.trim()) {
       setPasswordError("Le mot de passe est requis.");
+      alert("Le mot de passe est requis.");
       isValid = false;
     } else if (password.length < 6) {
       setPasswordError("Le mot de passe doit contenir au moins 6 caractères.");
+      alert("Le mot de passe doit contenir au moins 6 caractères.");
       isValid = false;
     }
 
@@ -51,7 +57,7 @@ export default function SignInForm() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!validateForm()) return;
-
+  
     setIsLoading(true);
     try {
       const res = await fetch("http://localhost:8081/api/auth/login", {
@@ -59,45 +65,63 @@ export default function SignInForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-
+  
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.message || "Email ou mot de passe invalide.");
+        // Supposons que errorData contienne { field: "email" | "password", message: "..." }
+        if (errorData.field === "email") {
+          setEmailError(errorData.message || "L'email est incorrect.");
+          alert(errorData.message || "L'email est incorrect.");
+        } else if (errorData.field === "password") {
+          setPasswordError(errorData.message || "Le mot de passe est incorrect.");
+          alert(errorData.message || "Le mot de passe est incorrect.");
+        } else {
+          setEmailError("Email ou mot de passe invalide.");
+          setPasswordError("Email ou mot de passe invalide.");
+          alert("Email ou mot de passe invalide.");
+        }
+        throw new Error(errorData.message || "Erreur d'authentification.");
+        
       }
-
+  
       const { token } = await res.json();
       localStorage.setItem("token", token);
-
+      login(token); // Appel de la fonction login du contexte pour mettre à jour l'utilisateur connecté
+  
       const decoded = jwtDecode<JWTPayload>(token);
       console.log("Token décodé :", decoded);
-
+  
       // Normalisation des rôles : on retire le préfixe "ROLE_" si présent
       const role = decoded.role.toUpperCase().replace(/^ROLE_/, "");
-
+  
       switch (role) {
         case "ADMIN":
-          router.push("/dashboard_admin");
+          router.push("/dashboardadmin/dashboard_admin");
           break;
         case "RESPONSABLE_RH":
-          router.push("/tableauboardrh");
+          router.push("/tableauboardrh/dashboardRh");
           break;
         case "MANAGER":
           router.push("/dashboardmanager");
           break;
         case "EMPLOYE":
-          router.push("/dashboardemployee");
+          router.push("/employe");
           break;
         default:
+          alert("Rôle non reconnu.");
           throw new Error("Rôle non reconnu.");
       }
     } catch (error) {
       console.error("Erreur lors de la connexion :", error);
-      setEmailError("Une erreur est survenue. Veuillez réessayer.");
+      // Si aucune erreur spécifique n'a déjà été affichée, afficher une alerte générique.
+      if (!emailError && !passwordError) {
+        alert("Une erreur est survenue. Veuillez réessayer.");
+      }
     } finally {
       setIsLoading(false);
     }
   };
-
+  
   return (
     <div
       className="flex items-center justify-center min-h-screen bg-cover bg-center"
