@@ -61,13 +61,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const normalizedRole = role.toUpperCase().replace(/^ROLE_/, "");
     switch (normalizedRole) {
       case "ADMIN":
-        return "/dashboard_admin";
+        return "/dashboardadmin/dashboard_admin";
       case "RESPONSABLE_RH":
-        return "/tableauboardrh";
+        return "/tableauboardrh/dashboardRh";
       case "MANAGER":
         return "/dashboardmanager";
       case "EMPLOYE":
-        return "/dashboardemployee";
+        return "/employe";
       default:
         return "/";
     }
