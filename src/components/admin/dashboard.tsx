@@ -210,15 +210,7 @@ export default function AdminDashboard() {
                 >
                   Rejeter
                 </Button>
-                <Button
-                  onClick={() =>
-                    router.push(`/dashboard_admin/details/${employee.id}`)
-                  }
-                  variant="outline"
-                  className="w-full md:w-auto"
-                >
-                  Détails
-                </Button>
+               
               </div>
             </Card>
           ))}
